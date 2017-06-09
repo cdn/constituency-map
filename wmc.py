@@ -49,6 +49,8 @@ for key, area in sorted(all.items()):
             elif poly.status_code == 429:
                 print('50 free requests per day used up')
                 print('See https://mapit.mysociety.org/pricing/ for details')
+                fp.close()
+                os.unlink(file)
                 sys.exit()
 #        close F;
 
