@@ -17,11 +17,11 @@
 </head>
 <body>
     <h1>Rapid EVSE Map</h1>
-<!--    <p>This is a simple visualisation of the predicted vote data from the <a href='http://www.c4em.org.uk/'>Coalition for Equal Marriage</a>. You can click on each constituency for information about the MP and the supporting evidence.</p> 
+<!--    <p>This is a simple visualisation of the predicted vote data from the <a href='http://www.c4em.org.uk/'>Coalition for Equal Marriage</a>. You can click on each constituency for information about the MP and the supporting evidence.</p>
     <p>A green area is expected to vote for equal marriage, and a red area is expected the vote against. Dark grey shaded areas are expected not to vote, and light grey are currently unknown. </p> -->
-	<div style='width:600px; height:600px; float:left' id="map"></div>
+	<div style='width:600px; margin-right:.5em; height:600px; float:left' id="map"></div>
 	<div id="info" style='float:clear; overflow:auto;';><h4>EVSE Rapid Charger Availability</h4> Click on a constituency for information</div>
-	<div id='about' style='width:100%; float:left'> 
+	<div id='about' style='width:100%; float:left'>
 		<h2> About </h2>
 		<ul>
 <!--		<li>MP Information from the <a href='http://www.c4em.org.uk/support-for-equal-marriage/'>Coalition for Equal Marriage</a></li> -->
@@ -46,7 +46,7 @@ map = new L.Map('map');
 	// create the tile layer with correct attribution
 	var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 	var osmAttrib='Map data &copy; OpenStreetMap contributors, mysociety, c4em.org.uk';
-	var osm = new L.TileLayer(osmUrl, {minZoom: 5, maxZoom: 12, attribution: osmAttrib});		
+	var osm = new L.TileLayer(osmUrl, {minZoom: 5, maxZoom: 12, attribution: osmAttrib});
         osm = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png',{
                                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>' +
                                               ' contributors, mysociety, &copy; <a href="https://carto.com/attributions">CARTO</a>' }
@@ -65,9 +65,13 @@ map = new L.Map('map');
 //alert(evse_json.length) // 709 Grantham missing
 
 /* Moved so it appears with the group, rather than before */
-		marker = new L.marker([52.948923,-0.679176])
+	/*	marker = new L.marker([52.948923,-0.679176])
 			.bindPopup('Grantham North Moto A1 Services')
-			.addTo(evse);
+			.addTo(evse); */
+
+  /*  marker = new L.marker([53.537056,-0.046601])
+  			.bindPopup('Trenton Nissan')
+  			.addTo(evse); */
 
 //	var ticon = L.Icon.Default({iconUrl: 'images/marker-tesla.png'}); // , shadowUrl: 'images/marker-shadow.png'});
 	var ricon = L.Icon.Default.extend({options:{iconUrl: 'images/marker-tesla.png'}}); // , shadowUrl: 'images/marker-shadow.png'});
@@ -75,7 +79,10 @@ map = new L.Map('map');
 //	ticon.prototype.options.iconUrl = 'images/marker-tesla.png'
 	for (var i = 0; i < evse_json.length; i++) {
 //alert()
-		if(evse_json[i].AddressInfo.Title.indexOf('Supercharger') != -1)
+		if(evse_json[i].AddressInfo.Title.indexOf('Supercharger') != -1 ||
+       evse_json[i].ID == 59090
+// false negative
+  )
 		marker = new L.marker([evse_json[i].AddressInfo.Latitude,evse_json[i].AddressInfo.Longitude], {icon: ticon})
 			.bindPopup(evse_json[i].AddressInfo.Title)
 			.addTo(tesla);
@@ -108,7 +115,7 @@ L.control.layers(baseMap,overlayMaps).addTo(map);
 }
 
 function getColor(d) {
-    return d == '3' ? '#00cc00' : d == '2' ? '#0000cc' : '#cccccc';
+    return d == '3' ? '#00cc00' : d == '2' ? '#0000cc' : '#dddddd';
 /*    return d == '1' ? '#00FF00' :
     d == '-1'  ? '#666666' :
     d == '0'  ? '#FF0000' :
@@ -117,12 +124,12 @@ function getColor(d) {
 
 function style(feature) {
     return {
-        fillColor: getColor(feature.properties.likelyvote),
+        fillColor: getColor(feature.properties.evse),
         weight: 1,
         opacity: 1,
         color: 'white',
         dashArray: '3',
-        fillOpacity: 0.7
+        fillOpacity: 0.567
     };
 }
 
@@ -149,7 +156,7 @@ function zoomToFeature(e) {
 	var layer = e.target;
 	infoupdate(layer.feature.properties);
     map.fitBounds(e.target.getBounds());
-    
+
 }
 
 function onEachFeature(feature, layer) {
@@ -168,21 +175,23 @@ function infoupdate (props) {
     var infotext;
 
     if (props) {
-    	var evidence = '<h4>Evidence</h4><ol>';
+    	var evidence = '<ol>';
     	var c = 0;
     	$.each(props.evidence, function(i, item) {
     		c++;
     		if (item.substring(0,5) == 'http:') {
     			item = '<a href="' + item + '">' + item + '</a>';
+    		} else if (item.substring(0,7) == 'mailto:') {
+          item = '<a href="' + item + '">' + item.replace(/mailto\:/, '') + '</a>';
     		}
     		evidence = evidence  + '<li>' + item + '</li>';
     	})
-        infotext = '<b>' + props.name + '</b><br />' + props.firstname + ' ' + props.secondname + '<br />' + props.party  + '<br />' + 
-        	(props.url ? '<a href="' + props.url + '"</a>' + props.url + '</a><br />' : '') + 
+        infotext = '<b>' + props.name + '</b><br />' + props.firstname + ' ' + props.secondname + '<br />' + props.party  + '<br />' +
+        	(props.url ? '<a href="' + props.url + '"</a>' + props.url + '</a><br />' : '') +
         	(props.twitter  ? '<a href="http://twitter.com/' + props.twitter + '"</a>twitter.com/' + props.twitter + '</a><br />' : '') +
-//        	'<br /><blockquote>' + props.quote + '</blockquote>' + 
-//        	evidence ;
-		'';
+//        	'<br /><blockquote>' + props.quote + '</blockquote>' +
+        	evidence + '</ol>';
+//		'';
 
     } else {
      infotext = 'Click on a constituency';
