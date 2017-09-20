@@ -52,6 +52,10 @@ map = new L.Map('map');
                                               ' contributors, mysociety, &copy; <a href="https://carto.com/attributions">CARTO</a>' }
         );
 	map.setView(new L.LatLng(54.3, -1.7),6);
+
+  // Ask visitor for their location
+  map.locate({setView: true, maxZoom: 9});
+
 	map.addLayer(osm);
 	geojson = L.geoJson(statesData, {style: style, onEachFeature: onEachFeature}).addTo(map);
 
